@@ -1,0 +1,76 @@
+#!/bin/sh
+
+usage() {
+	cat << EOF
+Usage: gumboot-install [INSTALL DIRECTORY]
+Install a copy of Gumboot to a directory.
+If a block device is given, gumboot-install will try to resolve a mountpoint.
+A clone of 'grub-install', and a part of the 'gumboot-utils' suite.
+
+  -h, --help      print this message and exit
+  -v              enable verbose mode
+  -V, --version   print the version and exit
+
+Report bugs to the GitHub issues page.
+EOF
+	exit 0
+}
+
+export progname="gumboot-install"
+
+. /usr/lib/gumboot/util.sh
+
+# handle args
+while getopts ":Vvh" opt; do
+	case ${opt} in
+		V)
+			version
+			;;
+		v)
+			log "Verbose mode enabled"
+			export v=1
+			;;
+		h)
+			usage
+			;;
+		?)
+			error "Invalid option: -${OPTARG}."
+			exit 1
+			;;
+	esac
+done
+
+
+# handle empty string and not given
+if [ "$1" = "" ] || { [ "$1" = "-v" ] && [ "$2" = "" ]; } ; then
+	usage
+fi
+
+starting
+
+dir="$1"
+if [ "$1" = "-v" ]; then
+	dir="$2"
+fi
+
+
+mkdir -p "$dir/gumboot"
+mkdir -p "$dir/bootmii"
+paths="usr/lib/gumboot/gumboot.elf:$dir/gumboot/gumboot.elf
+usr/lib/gumboot/gui.elf:$dir/bootmii/gui.elf
+usr/lib/gumboot/armboot.bin:$dir/bootmii/armboot.bin"
+
+for pathGroup in $paths; do
+	src="$(echo "$pathGroup" | cut -d ':' -f1)"
+	dst="$(echo "$pathGroup" | cut -d ':' -f2)"
+
+	if [ "$v" = "1" ]; then
+		log "copying $src to $dst"
+	fi
+	if ! cp "$src" "$dst"; then
+		error "Error copying files"
+		exit 1
+	fi
+done
+
+log "Successfully installed Gumboot to $dir"

@@ -1,0 +1,38 @@
+#!/bin/sh
+
+#if ! mountpoint boot; then
+#	error "/boot isn't a mountpoint, which is not normal.  Run \"wii-linux-support\"!"
+#	exit 1
+#fi
+if ! [ -d "boot/$KERNEL_DIR" ]; then
+	error "/boot/$KERNEL_DIR doesn't exist!"
+	exit 1
+fi
+
+# we've already checked it up above, it's impossible to fail to cd in.
+# since shellcheck is simply wrong, disable it's warning here
+
+# shellcheck disable=SC2164
+cd "boot/$KERNEL_DIR"
+wrote_kentry=false
+for krn in *.krn; do
+	# handle there being no matches
+	[ -e "$krn" ] || continue
+
+	short="$(printf "%s" "$krn" | head -c -4)"
+	long="$(cat "$short.txt" 2>/dev/null)"
+	if [ "$long" = "" ]; then
+		warn "$short.txt doesn't exist or is empty!  Falling back to file name."
+		long="$short"
+	fi
+
+	write_kentry "$short" "$long"
+	wrote_kentry=true
+done
+
+if [ "$wrote_kentry" != "true" ]; then
+	warn "No valid kernels found, continuing anyways."
+fi
+unset wrote_kentry
+
+cd - > /dev/null 2>&1

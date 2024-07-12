@@ -1,0 +1,63 @@
+#!/bin/sh
+usage() {
+	cat << EOF
+Usage: gumboot-mkconfig [OPTIONS]
+Generate a Gumboot config file.
+A clone of 'grub-mkconfig', and a part of the 'gumboot-utils' suite.
+
+  -o FILE         output generated config to FILE [default=stdout]
+  -h, --help      print this message and exit
+  -v              enable verbose mode
+  -V, --version   print the version and exit
+
+Report bugs to the GitHub issues page.
+EOF
+	exit 0
+}
+
+export progname="gumboot-mkconfig"
+
+. /usr/lib/gumboot/util.sh
+
+# handle args
+while getopts ":o:Vvh" opt; do
+	case ${opt} in
+		o)
+			out="$OPTARG"
+			log "Writing to file $out"
+			exec > "$out"
+			;;
+		V)
+			version
+			;;
+		v)
+			log "Verbose mode enabled"
+			export v=1
+			;;
+		h)
+			usage
+			;;
+		:)
+			error "Option -${OPTARG} requires an argument."
+			exit 1
+			;;
+		?)
+			error "Invalid option: -${OPTARG}."
+			exit 1
+			;;
+	esac
+done
+
+starting
+
+log "reading config"
+. etc/default/gumboot
+
+log "reading each gumboot.d entry"
+for f in $(echo etc/gumboot.d/* | sort); do
+	if [ "$v" = "1" ]; then
+		log "starting $f"
+	fi
+	. "$f"
+done
+
