@@ -39,9 +39,9 @@ This doesn't really need to be built, since it's all shell scripts.
 However, it does need to downlad important binaries for Gumboot and BootMii.  
 You can do that with `make download`, or simply `make`.
 
-After downloaded, you can install to a directory of choice with `make install`.
-By default it'll install to [pwd]/install, but this can be overriden with the `DESTDIR` parameter.
-For example: `make install DESTDIR=/` to install to the local rootfs.
+After downloaded, you can install to a directory of choice with `make install`.  
+By default it'll install to [pwd]/install, but this can be overriden with the `DESTDIR` parameter.  
+For example: `make install DESTDIR=/` to install to the local rootfs.  
 
 ### Notes
 
